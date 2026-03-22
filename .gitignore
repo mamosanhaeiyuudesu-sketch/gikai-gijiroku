@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Output files
+gijiroku_all.txt
+features.json
+miyako-file-ids.json
+vectorstore_id.txt
+
+# Output directories
+output/
+sessions/
+gijiroku/
