@@ -128,6 +128,8 @@ export OPENAI_API_KEY="sk-..."
 
 ## 実行手順
 
+### 宮古島市議会
+
 ```bash
 python3 0_download.py
 python3 1_extract_text.py
@@ -139,3 +141,35 @@ python3 5_upload_sessions.py
 # 発話者分析（別途実行）
 python3 analyze_speakers.py
 ```
+
+### 国会会議録
+
+```bash
+# 取得条件を指定（例: 第213回国会・衆議院・本会議）
+python3 kokkai/0_fetch.py --session 213 --house 衆議院 --meeting 本会議
+
+# 日付範囲で取得する場合
+python3 kokkai/0_fetch.py --from 2024-01-01 --until 2024-06-30
+
+python3 kokkai/1_format.py
+python3 kokkai/2_extract_features.py
+
+# OpenAI Vector Store へのアップロード（OPENAI_API_KEY が必要）
+python3 kokkai/3_upload_vectorstore.py
+python3 kokkai/4_split_sessions.py
+python3 kokkai/5_upload_sessions.py
+
+# 発話者分析（別途実行）
+python3 kokkai/analyze_speakers.py
+```
+
+**国会版の出力ファイル:**
+
+| ファイル | 生成スクリプト | 内容 |
+|---|---|---|
+| `kokkai/meetings/*.json` | `0_fetch.py` | 会議ごとのJSON |
+| `kokkai/kokkai_all.txt` | `1_format.py` | 全会議結合テキスト |
+| `kokkai/features.json` | `2_extract_features.py` | 会議ごとのTF-IDFキーワード |
+| `kokkai/vectorstore_id.txt` | `3_upload_vectorstore.py` | OpenAI Vector Store ID |
+| `kokkai/sessions/*.txt` | `4_split_sessions.py` | 会議ごとのテキストファイル |
+| `kokkai/kokkai-file-ids.json` | `5_upload_sessions.py` | 会議名 → OpenAI file_id マッピング |
