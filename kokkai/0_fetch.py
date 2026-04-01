@@ -60,7 +60,7 @@ def fetch_meetings(params: dict) -> list[dict]:
         }
 
         try:
-            resp = requests.get(f"{API_BASE}/meeting", params=req_params, timeout=30)
+            resp = requests.get(f"{API_BASE}/meeting_list", params=req_params, timeout=30)
             resp.raise_for_status()
             data = resp.json()
         except requests.RequestException as e:

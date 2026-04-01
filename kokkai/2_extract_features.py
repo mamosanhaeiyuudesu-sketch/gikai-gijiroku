@@ -76,21 +76,25 @@ def tokenize(text: str, tagger) -> list[str]:
     for word in tagger(text):
         pos  = word.feature.pos1
         pos2 = word.feature.pos2
+        pos3 = word.feature.pos3
         base = word.feature.lemma or word.surface
 
         if pos != "名詞":
             continue
         if pos2 in {"非自立可能", "接尾辞", "数詞"}:
             continue
-        if not base or len(base) < 2:
+        if pos3 == "人名":
+            continue
+        # 固有名詞でカタカナのみの語（辞書未登録の人名読み等）を除外
+        if pos2 == "固有名詞" and re.match(r"^[ァ-ヴー]+$", base):
+            continue
+        if not base or len(base) < 2 or len(base) > 10:
             continue
         if base in STOPWORDS:
             continue
         if re.match(r"^[0-9０-９\s\-・]+$", base):
             continue
         if re.match(r"^[ぁ-ん]+$", base):
-            continue
-        if re.match(r"^[ァ-ヴー]+$", base):
             continue
         if re.search(r"[a-zA-Z\-]", base):
             continue
