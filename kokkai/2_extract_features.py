@@ -72,6 +72,13 @@ STOPWORDS = {
 
 def tokenize(text: str, tagger) -> list[str]:
     """名詞（普通名詞・固有名詞）のみ返す"""
+    # ◎会議録情報ブロック（出席者一覧）を除去
+    # 最初の ◎会議録情報 から次の ◎ までをスキップ
+    text = re.sub(r"◎会議録情報[^\n]*\n.*?(?=\n◎|\Z)", "", text, flags=re.DOTALL)
+    # ◎発言者名行を除去（人名ノイズを防ぐ）
+    lines = [l for l in text.splitlines() if not l.startswith("◎")]
+    text = "\n".join(lines)
+
     words = []
     for word in tagger(text):
         pos  = word.feature.pos1
@@ -141,12 +148,14 @@ def main():
 
     labels    = []
     tokenized = []
+    word_lists = []
 
     for i, (label, content) in enumerate(sessions, 1):
         print(f"  [{i:4d}/{len(sessions)}] {label}", flush=True)
         words = tokenize(content, tagger)
         labels.append(label)
         tokenized.append(" ".join(words))
+        word_lists.append(words)
 
     print("TF-IDF 計算中...")
     vectorizer = TfidfVectorizer(
@@ -163,8 +172,11 @@ def main():
     for i, label in enumerate(labels):
         row         = tfidf_matrix[i].toarray()[0]
         top_indices = row.argsort()[::-1][:TOP_N]
+        counts      = {}
+        for w in word_lists[i]:
+            counts[w] = counts.get(w, 0) + 1
         top_words   = [
-            {"word": feature_names[j], "score": round(float(row[j]), 4)}
+            {"word": feature_names[j], "score": round(float(row[j]), 4), "count": counts.get(feature_names[j], 0)}
             for j in top_indices
             if row[j] > 0
         ]

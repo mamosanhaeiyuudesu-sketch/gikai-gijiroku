@@ -140,12 +140,14 @@ def main():
 
     labels      = []
     tokenized   = []  # 各会期のトークンリスト（スペース区切り文字列）
+    word_lists  = []
 
     for i, (label, content) in enumerate(sessions, 1):
         print(f"  [{i:3d}/{len(sessions)}] {label}", flush=True)
         words = tokenize(content, tagger)
         labels.append(label)
         tokenized.append(" ".join(words))
+        word_lists.append(words)
 
     print("TF-IDF 計算中...")
     vectorizer = TfidfVectorizer(
@@ -163,8 +165,11 @@ def main():
         row    = tfidf_matrix[i].toarray()[0]
         # スコア上位N語を取得
         top_indices = row.argsort()[::-1][:TOP_N]
+        counts      = {}
+        for w in word_lists[i]:
+            counts[w] = counts.get(w, 0) + 1
         top_words   = [
-            {"word": feature_names[j], "score": round(float(row[j]), 4)}
+            {"word": feature_names[j], "score": round(float(row[j]), 4), "count": counts.get(feature_names[j], 0)}
             for j in top_indices
             if row[j] > 0
         ]
